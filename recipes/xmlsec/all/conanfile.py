@@ -46,6 +46,10 @@ class XmlSecConan(ConanFile):
     def _settings_build(self):
         return getattr(self, "settings_build", self.settings)
 
+    @property
+    def _is_mingw(self):
+        return self.settings.compiler == "gcc" and self.settings.os == "Windows"
+
     def config_options(self):
         if self.settings.os == "Windows":
             del self.options.fPIC
@@ -105,6 +109,9 @@ class XmlSecConan(ConanFile):
             tc = AutotoolsToolchain(self)
             if not self.options.shared:
                 tc.extra_defines.append("XMLSEC_STATIC")
+            if self._is_mingw:
+                tc.extra_defines.append("WIN32_LEAN_AND_MEAN")
+
             yes_no = lambda v: "yes" if v else "no"
             tc.configure_args.extend([
                 "--enable-crypto-dl=no",
